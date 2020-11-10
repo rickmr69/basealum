@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Alumnos</title>
+  <!-- Ícono para la página web. -->
+  <!-- Color de la barra de navegación de Chrome. -->
+  <meta name="theme-color" content="#ffcb2d">
+
+  <!-- Configuración de la Web App Chrome y Microsoft Store. -->
+  <link rel="manifest" href="manifest.json">
+  <!-- Configuración para del acceso directo en Windows Edge/IE -->
+  <!-- Icono -->
+  <!-- Color de tile. -->
+  <meta name="msapplication-TileColor" content="#4fc3f7">
+  <!-- Configuración para Web Clip en Safari. -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="estilos.css">
+  <script type="module" src="lib/registraServiceWorker.js"></script>
+  <script src="lib/polycustom.js"></script>
+  <script type="module" src="mi-footer.js"></script>
+</head>
+
+<body>
+  <header>
+    <a href="alumnoNuevo.html">Agregar&hellip;</a>
+    <h1>Alumnos</h1>
+  </header>
+  <table id="tabla" border="2" width=500px>
+    <tr>
+      <th>Matricula
+      <th>Nombre
+      <th>Telefono
+      <th>Fecha
+    </tr>
+
+  </table>
+  <footer is="mi-footer"></footer>
+  <script src="/__/firebase/8.0.1/firebase-auth.js"></script>
+  <script src="/__/firebase/8.0.1/firebase-app.js"></script>
+  <script src="/__/firebase/8.0.1/firebase-firestore.js"></script>
+  <script src="/__/firebase/init.js"></script>
+  <script type="module">
+    import { error, url, cod } from "./lib/util.js";
+    const firestore = firebase.firestore();
+    firestore.enablePersistence()
+      .catch(error)
+      .then(consulta);
+    function consulta() {
+      firebase.firestore().collection("ALUMNO").orderBy('ALUM_MATRICULA', 'asc').onSnapshot(
+
+        querySnapshot => {
+          querySnapshot.forEach(doc => {
+            const modelo = doc.data();
+            var fecha = cod(modelo.ALUM_FECHA).split('-').reverse().join('/');
+            tabla.innerHTML += /*html*/
+              `<tr>
+					<td>${cod(modelo.ALUM_MATRICULA)}</td>
+					<td><a href="alumno.html?id=${url(doc.id)}"> ${cod(modelo.ALUM_NOMBRE)}</a> </td>
+					<td>${cod(modelo.ALUM_TEL)}</td>
+					<td>${fecha}</td>
+				</tr>
+				`;
+          });
+        },
+        error);
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Alumno</title>
+    <link rel="icon" sizes="32x32" href="favicon.ico">
+    <meta name="theme-color" content="#ffcb2d">
+    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="estilos.css">
+    <script type="module" src="lib/registraServiceWorker.js"></script>
+    <script src="lib/polycustom.js"></script>
+    <script type="module" src="mi-footer.js"></script>
+</head>
+
+<body>
+    <form id="vista">
+        <header>
+            <a href="index.html">Cancelar</a>
+            <button type="submit">Guardar</button>
+            <button id="eliminar" type="button">Eliminar</button>
+            <h1><output id="título"><progress max="100">Cargando...</progress></h1>
+        </header>
+        <p>Matricula: <input id="matricula" type="number" placeholder="matricula" required></p>
+        <p>Nombre: <input id="nombre" type="text" placeholder="Nombre" required></p>
+        <p>Telefono: <input id="tel" type="text" placeholder="telefono" required></p>
+        <p>Fecha: <input id="fecha" type="date" required></p>
+        <footer is="mi-footer"></footer>
+    </form>
+    <script src="/__/firebase/8.0.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.0.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script type="module">
+        import { error, valida } from "./lib/util.js";
+        const parametros = new URLSearchParams(location.search);
+        const id = parametros.get("id");
+        const firestore = firebase.firestore();
+        firestore.enablePersistence()
+            .catch(error)
+            .then(busca);
+        async function busca() {
+            try {
+                const doc = await firestore.collection("ALUMNO").doc(id).get();
+                if (doc.exists) {
+                    const modelo = doc.data();
+                    document.title = modelo.ALUM_NOMBRE;
+                    título.value = modelo.ALUM_NOMBRE;
+                    nombre.value = modelo.ALUM_NOMBRE;
+                    matricula.value = modelo.ALUM_MATRICULA;
+                    tel.value = modelo.ALUM_TEL;
+                    fecha.value = modelo.ALUM_FECHA;
+                    vista.addEventListener("submit", guarda);
+                    eliminar.addEventListener("click", elimina);
+                } else {
+                    alert("Alumno no encontrado");
+                }
+            } catch (e) {
+                error(e)
+            }
+        }
+        async function guarda(evt) {
+            try {
+                evt.preventDefault();
+                const ALUM_MATRICULA = matricula.valueAsNumber;
+                const ALUM_NOMBRE = nombre.value;
+                const ALUM_TEL = tel.value;
+                const ALUM_FECHA = fecha.value;
+                const modelo = { ALUM_MATRICULA, ALUM_NOMBRE, ALUM_TEL, ALUM_FECHA };
+                const docs =
+                    await firestore.collection("ALUMNO").where("ALUM_MATRICULA", "==", ALUM_MATRICULA).get();
+                docs.forEach(
+                    /** @param {DocumentSnapshot} doc */
+                    doc => valida(doc.id === id, "Ese alumno con esa matricula ya existe"));
+                await firestore.collection("ALUMNO").doc(id).set(modelo);
+                document.location = "index.html";
+            } catch (e) {
+                error(e)
+            }
+        }
+        async function elimina() {
+            try {
+                await firestore.collection("ALUMNO").doc(id).delete();
+                document.location = "index.html";
+            } catch (e) {
+                error(e)
+            }
+        }
+    </script>
+</body>
+</html>
